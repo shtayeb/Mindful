@@ -116,6 +116,36 @@ class AppsRestrictionsNotifier
     _updateStateDbAndServices(appPackage, restriction);
   }
 
+  /// Updates the Pause Point duration (in seconds) for a specific app package.
+  ///
+  /// Setting [pausePointSec] to 0 disables Pause Point for the app.
+  Future<void> updatePausePoint(String appPackage, int pausePointSec) async {
+    final restriction =
+        state[appPackage]?.copyWith(pausePointSec: pausePointSec) ??
+            defaultAppRestrictionModel.copyWith(
+              appPackage: appPackage,
+              pausePointSec: pausePointSec,
+            );
+
+    _updateStateDbAndServices(appPackage, restriction);
+  }
+
+  /// Updates the cooldown (in minutes) between consecutive Pause Point firings
+  /// for a specific app package.
+  Future<void> updatePausePointCooldown(
+    String appPackage,
+    int cooldownMin,
+  ) async {
+    final restriction =
+        state[appPackage]?.copyWith(pausePointCooldownMin: cooldownMin) ??
+            defaultAppRestrictionModel.copyWith(
+              appPackage: appPackage,
+              pausePointCooldownMin: cooldownMin,
+            );
+
+    _updateStateDbAndServices(appPackage, restriction);
+  }
+
   /// Toggles internet access permission for a specific app package if package is not empty.
   ///
   /// Anyway call the platform channel service to potentially start or stop a VPN.
@@ -218,6 +248,7 @@ class AppsRestrictionsNotifier
               (e.timerSec > 0 ||
                   e.launchLimit > 0 ||
                   e.periodDurationInMins > 0 ||
+                  e.pausePointSec > 0 ||
                   e.associatedGroupId != null),
         )
         .toList();

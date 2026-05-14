@@ -618,7 +618,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Choose what to push when a schedule triggers — all notifications or just a summary.';
 
   @override
-  String get batch_recap_option_summery_only => 'Summery only';
+  String get batch_recap_option_summery_only => 'Summary only';
 
   @override
   String get batch_recap_option_all_notifications => 'All notifications';
@@ -1288,6 +1288,33 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get app_launch_limit_picker_dialog_info =>
       'Set how many times you can open this app each day. Once the limit is reached, it will be paused until midnight.';
+
+  @override
+  String get pause_point_tile_title => 'Pause Point';
+
+  @override
+  String get pause_point_tile_subtitle_off => 'Off';
+
+  @override
+  String pause_point_tile_subtitle_on(int seconds, int cooldown) {
+    return '${seconds}s pause every ${cooldown}min';
+  }
+
+  @override
+  String get pause_point_info =>
+      'A brief breather before this app opens — a moment to ask yourself why you\'re opening it. Re-fires after the cooldown.';
+
+  @override
+  String get pause_point_duration_label => 'Pause length';
+
+  @override
+  String get pause_point_cooldown_label => 'Re-pause interval';
+
+  @override
+  String get pause_point_action_enable => 'Enable';
+
+  @override
+  String get pause_point_action_disable => 'Disable';
 
   @override
   String get app_active_period_tile_title => 'Active period';

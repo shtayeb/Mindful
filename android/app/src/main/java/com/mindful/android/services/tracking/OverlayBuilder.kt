@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -130,6 +132,7 @@ object OverlayBuilder {
                 RestrictionType.APP_ACTIVE_PERIOD -> R.string.app_paused_restriction_app_active_period
                 RestrictionType.GROUP_TIMER -> R.string.app_paused_restriction_group_timer
                 RestrictionType.GROUP_ACTIVE_PERIOD -> R.string.app_paused_restriction_group_active_period
+                RestrictionType.PAUSE_POINT -> R.string.app_paused_restriction_pause_point
             }
         )
 
@@ -259,6 +262,70 @@ object OverlayBuilder {
                     R.string.app_paused_reason_group_active_period_over,
                     state.groupName
                 )
+
+            // Pause Point is shown via buildPausePointOverlay and never routes through
+            // this builder, but the when() must be exhaustive.
+            RestrictionType.PAUSE_POINT -> ""
         }
+    }
+
+    @MainThread
+    fun buildPausePointOverlay(
+        context: Context,
+        packageName: String,
+        pausePointSec: Int,
+        onContinue: () -> Unit,
+        onReturnHome: () -> Unit,
+    ): View {
+        val inflater = LayoutInflater.from(context)
+        val sheetView = inflater.inflate(R.layout.overlay_pause_point_layout, null)
+
+        // Resolve app icon and label
+        val (appName, appIcon) = getAppLabelAndIcon(context, packageName)
+        sheetView.findViewById<TextView>(R.id.pause_point_app_name).text = appName
+        sheetView.findViewById<ImageView>(R.id.pause_point_app_icon).setImageDrawable(appIcon)
+
+        val countdownTxt = sheetView.findViewById<TextView>(R.id.pause_point_countdown)
+        val actions = sheetView.findViewById<LinearLayout>(R.id.pause_point_actions)
+        val openBtn = sheetView.findViewById<Button>(R.id.pause_point_btn_open)
+        val homeBtn = sheetView.findViewById<Button>(R.id.pause_point_btn_home)
+
+        val initialSeconds = pausePointSec.coerceAtLeast(1)
+        countdownTxt.text = initialSeconds.toString()
+        openBtn.text = context.getString(R.string.pause_point_overlay_btn_open, appName)
+
+        // Tick the countdown once per second, then reveal action buttons.
+        val handler = Handler(Looper.getMainLooper())
+        var remaining = initialSeconds
+        val tick = object : Runnable {
+            override fun run() {
+                remaining -= 1
+                if (remaining > 0) {
+                    countdownTxt.text = remaining.toString()
+                    handler.postDelayed(this, 1000L)
+                } else {
+                    countdownTxt.visibility = View.GONE
+                    actions.visibility = View.VISIBLE
+                }
+            }
+        }
+        handler.postDelayed(tick, 1000L)
+
+        openBtn.setOnClickListener {
+            handler.removeCallbacksAndMessages(null)
+            ThreadUtils.runOnMainThread { onContinue.invoke() }
+        }
+        homeBtn.setOnClickListener {
+            handler.removeCallbacksAndMessages(null)
+            ThreadUtils.runOnMainThread {
+                val homeIntent = Intent(Intent.ACTION_MAIN)
+                homeIntent.addCategory(Intent.CATEGORY_HOME)
+                homeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.applicationContext.startActivity(homeIntent)
+                onReturnHome.invoke()
+            }
+        }
+
+        return sheetView
     }
 }

@@ -40,26 +40,32 @@ class OverlayManager(
         context.getSystemService(WINDOW_SERVICE) as WindowManager
 
 
-    /// Animate out the overlay
+    /// Animate out the overlay (works for both the blocking sheet and the pause point sheet)
     fun dismissSheetOverlay() {
         overlays.pollFirst()?.let { sheetOverlay ->
             ThreadUtils.runOnMainThread {
-                // Get views
-                val bg = sheetOverlay.findViewById<View>(R.id.overlay_background)
-                val quote = sheetOverlay.findViewById<View>(R.id.overlay_sheet_quote_panel)
-                val sheet = sheetOverlay.findViewById<LinearLayout>(R.id.overlay_sheet)
+                // Resolve views for whichever overlay variant this is
+                val bg: View? = sheetOverlay.findViewById(R.id.overlay_background)
+                    ?: sheetOverlay.findViewById(R.id.pause_point_background)
+                val quote: View? = sheetOverlay.findViewById(R.id.overlay_sheet_quote_panel)
+                val sheet: LinearLayout? = sheetOverlay.findViewById(R.id.overlay_sheet)
+                    ?: sheetOverlay.findViewById(R.id.pause_point_sheet)
 
                 // Animate
-                bg.animate().alpha(0f).setDuration(400).start()
-                quote.animate().alpha(0f).setDuration(400).start()
-                sheet.animate()
-                    .translationY(SLIDE_DOWN_END_Y)
-                    .setInterpolator(OvershootInterpolator(1.5f))
-                    .setDuration(500)
-                    .withEndAction {
-                        windowManager.removeView(sheetOverlay)
-                    }
-                    .start()
+                bg?.animate()?.alpha(0f)?.setDuration(400)?.start()
+                quote?.animate()?.alpha(0f)?.setDuration(400)?.start()
+                if (sheet != null) {
+                    sheet.animate()
+                        .translationY(SLIDE_DOWN_END_Y)
+                        .setInterpolator(OvershootInterpolator(1.5f))
+                        .setDuration(500)
+                        .withEndAction {
+                            windowManager.removeView(sheetOverlay)
+                        }
+                        .start()
+                } else {
+                    windowManager.removeView(sheetOverlay)
+                }
             }
         }
     }
@@ -114,6 +120,60 @@ class OverlayManager(
                     // Animate
                     bg.animate().alpha(1f).setDuration(400).start()
                     quote.animate().alpha(1f).setDuration(400).start()
+                    sheet.animate()
+                        .translationY(0f)
+                        .setInterpolator(OvershootInterpolator(1.5f))
+                        .setDuration(500)
+                        .start()
+                }
+            }.getOrElse {
+                SharedPrefsHelper.insertCrashLogToPrefs(context, it)
+            }
+        }
+    }
+
+
+    fun showPausePointOverlay(
+        packageName: String,
+        pausePointSec: Int,
+    ) {
+        // Return if an overlay is already showing
+        if (overlays.isNotEmpty()) return
+
+        ThreadUtils.runOnMainThread {
+            runCatching {
+                if (!haveOverlayPermission(context)) {
+                    return@runOnMainThread
+                }
+
+                val pausePointOverlay = OverlayBuilder.buildPausePointOverlay(
+                    context = context,
+                    packageName = packageName,
+                    pausePointSec = pausePointSec,
+                    onContinue = ::dismissSheetOverlay,
+                    onReturnHome = ::dismissSheetOverlay,
+                ).apply {
+                    // TODO: Fix the deprecated logic
+                    systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                }
+
+                Log.d(TAG, "showPausePointOverlay: Showing pause point overlay for $packageName")
+                pausePointOverlay.also {
+                    windowManager.addView(it, sheetLayoutParams)
+                    overlays.push(it)
+                    Utils.vibrateDevice(context, 50L)
+
+                    val bg = it.findViewById<View>(R.id.pause_point_background)
+                    val sheet = it.findViewById<LinearLayout>(R.id.pause_point_sheet)
+
+                    // Set initial
+                    bg.alpha = 0f
+                    sheet.translationY = SLIDE_UP_START_Y
+
+                    // Animate
+                    bg.animate().alpha(1f).setDuration(400).start()
                     sheet.animate()
                         .translationY(0f)
                         .setInterpolator(OvershootInterpolator(1.5f))

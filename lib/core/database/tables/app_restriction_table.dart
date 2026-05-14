@@ -54,4 +54,12 @@ class AppRestrictionTable extends Table {
   /// [ReminderType] Type of reminders to show when using timed app
   TextColumn get reminderType =>
       textEnum<ReminderType>().withDefault(Constant(ReminderType.toast.name))();
+
+  /// Duration of the Pause Point breather in SECONDS.
+  /// 0 means Pause Point is disabled for this app.
+  IntColumn get pausePointSec => integer().withDefault(const Constant(0))();
+
+  /// Cooldown in MINUTES between consecutive Pause Point firings for this app.
+  IntColumn get pausePointCooldownMin =>
+      integer().withDefault(const Constant(30))();
 }

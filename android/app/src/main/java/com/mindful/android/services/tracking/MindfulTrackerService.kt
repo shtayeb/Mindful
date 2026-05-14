@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.annotation.WorkerThread
 import com.mindful.android.AppConstants
 import com.mindful.android.R
+import com.mindful.android.enums.RestrictionType
 import com.mindful.android.generics.ServiceBinder
 import com.mindful.android.helpers.device.NotificationHelper
 import com.mindful.android.helpers.storage.SharedPrefsHelper
@@ -87,8 +88,16 @@ class MindfulTrackerService : Service() {
             Log.d(TAG, "onNewAppLaunch: $packageName's evaluated state => $currentOrFutureState")
 
             currentOrFutureState?.let {
+                /// Pause Point: transient speed-bump, not a block. Show its own overlay and skip
+                /// the regular blocking/reminder path so subsequent launches re-evaluate freshly.
+                if (it.type == RestrictionType.PAUSE_POINT) {
+                    overlayManager.showPausePointOverlay(
+                        packageName = packageName,
+                        pausePointSec = it.pausePointSec,
+                    )
+                }
                 /// Already restricted
-                if (it.timeLeftMillis <= 0L) {
+                else if (it.timeLeftMillis <= 0L) {
                     overlayManager.showSheetOverlay(
                         packageName = packageName,
                         restrictionState = it,

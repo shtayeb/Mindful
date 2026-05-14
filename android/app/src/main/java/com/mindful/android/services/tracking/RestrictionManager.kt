@@ -39,10 +39,15 @@ class RestrictionManager(
     private val alreadyRestrictedApps = HashMap<String, RestrictionState>(0)
     private val alreadyRestrictedGroups = HashMap<Int, RestrictionState>(0)
 
+    // Per-app timestamp (epoch ms) of the last time Pause Point was shown,
+    // used to enforce the configured cooldown between firings.
+    private val pausePointLastFiredAt = HashMap<String, Long>()
+
     fun resetCache() {
         alreadyRestrictedApps.clear()
         alreadyRestrictedGroups.clear()
         appsLaunchCount.clear()
+        pausePointLastFiredAt.clear()
     }
 
     fun updateRestrictions(
@@ -86,6 +91,22 @@ class RestrictionManager(
 
         // If no restrictions
         val restriction = appsRestrictions[packageName] ?: return null
+
+        // Pause Point: evaluated before hard blocks so it fires even when the app is otherwise allowed.
+        // Returning here is intentional — Pause Point is a transient speed bump, not a block, so we skip
+        // the launch-count / timer / active-period checks for this launch and re-evaluate on the next one.
+        if (restriction.pausePointSec > 0) {
+            val now = System.currentTimeMillis()
+            val cooldownMs = restriction.pausePointCooldownMin.toLong() * 60_000L
+            val lastFired = pausePointLastFiredAt[packageName] ?: 0L
+            if (now - lastFired >= cooldownMs) {
+                pausePointLastFiredAt[packageName] = now
+                return RestrictionState(
+                    type = RestrictionType.PAUSE_POINT,
+                    pausePointSec = restriction.pausePointSec,
+                )
+            }
+        }
 
         // Increment and Check app launch count
         val launchCount = appsLaunchCount.getOrDefault(packageName, 0) + 1

@@ -1119,7 +1119,7 @@ abstract class AppLocalizations {
   /// No description provided for @batch_recap_option_summery_only.
   ///
   /// In en, this message translates to:
-  /// **'Summery only'**
+  /// **'Summary only'**
   String get batch_recap_option_summery_only;
 
   /// No description provided for @batch_recap_option_all_notifications.
@@ -2273,6 +2273,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set how many times you can open this app each day. Once the limit is reached, it will be paused until midnight.'**
   String get app_launch_limit_picker_dialog_info;
+
+  /// No description provided for @pause_point_tile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause Point'**
+  String get pause_point_tile_title;
+
+  /// No description provided for @pause_point_tile_subtitle_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get pause_point_tile_subtitle_off;
+
+  /// No description provided for @pause_point_tile_subtitle_on.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s pause every {cooldown}min'**
+  String pause_point_tile_subtitle_on(int seconds, int cooldown);
+
+  /// No description provided for @pause_point_info.
+  ///
+  /// In en, this message translates to:
+  /// **'A brief breather before this app opens — a moment to ask yourself why you\'re opening it. Re-fires after the cooldown.'**
+  String get pause_point_info;
+
+  /// No description provided for @pause_point_duration_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause length'**
+  String get pause_point_duration_label;
+
+  /// No description provided for @pause_point_cooldown_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-pause interval'**
+  String get pause_point_cooldown_label;
+
+  /// No description provided for @pause_point_action_enable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get pause_point_action_enable;
+
+  /// No description provided for @pause_point_action_disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable'**
+  String get pause_point_action_disable;
 
   /// No description provided for @app_active_period_tile_title.
   ///
