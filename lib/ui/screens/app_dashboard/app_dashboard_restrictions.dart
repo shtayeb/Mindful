@@ -32,6 +32,7 @@ import 'package:mindful/ui/common/styled_text.dart';
 import 'package:mindful/ui/dialogs/app_launch_limit_dialog.dart';
 import 'package:mindful/ui/screens/app_dashboard/app_internet_tile.dart';
 import 'package:mindful/ui/screens/app_dashboard/app_timer_tile.dart';
+import 'package:mindful/ui/screens/app_dashboard/pause_point_tile.dart';
 import 'package:mindful/ui/transitions/default_hero.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
@@ -159,6 +160,9 @@ class AppDashboardRestrictions extends ConsumerWidget {
             ),
           ),
         ).sliver,
+
+        /// Pause Point
+        PausePointTile(appInfo: appInfo).sliver,
 
         /// Active period
         DefaultExpandableListTile(

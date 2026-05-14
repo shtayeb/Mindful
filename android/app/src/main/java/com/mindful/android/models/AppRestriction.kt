@@ -42,6 +42,16 @@ data class AppRestriction(
      * ID of the restriction group this app belongs to (nullable).
      */
     val associatedGroupId: Int? = null,
+
+    /**
+     * Duration of the Pause Point breather in seconds. 0 means Pause Point is disabled.
+     */
+    val pausePointSec: Int = 0,
+
+    /**
+     * Cooldown in minutes between consecutive Pause Point firings for this app.
+     */
+    val pausePointCooldownMin: Int = 30,
 ) {
     companion object {
         /**
@@ -59,6 +69,8 @@ data class AppRestriction(
                 associatedGroupId = if (jsonObject.isNull("associatedGroupId")) null else jsonObject.optInt(
                     "associatedGroupId"
                 ),
+                pausePointSec = jsonObject.optInt("pausePointSec", 0),
+                pausePointCooldownMin = jsonObject.optInt("pausePointCooldownMin", 30),
             )
         }
     }

@@ -1301,6 +1301,33 @@ class AppLocalizationsSr extends AppLocalizations {
       'Постави колико пута можеш да отвориш ову апликацију сваког дана. Када се достигне лимит, апликација ће бити паузирана до поноћи.';
 
   @override
+  String get pause_point_tile_title => 'Pause Point';
+
+  @override
+  String get pause_point_tile_subtitle_off => 'Off';
+
+  @override
+  String pause_point_tile_subtitle_on(int seconds, int cooldown) {
+    return '${seconds}s pause every ${cooldown}min';
+  }
+
+  @override
+  String get pause_point_info =>
+      'A brief breather before this app opens — a moment to ask yourself why you\'re opening it. Re-fires after the cooldown.';
+
+  @override
+  String get pause_point_duration_label => 'Pause length';
+
+  @override
+  String get pause_point_cooldown_label => 'Re-pause interval';
+
+  @override
+  String get pause_point_action_enable => 'Enable';
+
+  @override
+  String get pause_point_action_disable => 'Disable';
+
+  @override
   String get app_active_period_tile_title => 'Активни период';
 
   @override

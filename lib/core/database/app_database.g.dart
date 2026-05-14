@@ -84,6 +84,22 @@ class $AppRestrictionTableTable extends AppRestrictionTable
               defaultValue: Constant(ReminderType.toast.name))
           .withConverter<ReminderType>(
               $AppRestrictionTableTable.$converterreminderType);
+  static const VerificationMeta _pausePointSecMeta =
+      const VerificationMeta('pausePointSec');
+  @override
+  late final GeneratedColumn<int> pausePointSec = GeneratedColumn<int>(
+      'pause_point_sec', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _pausePointCooldownMinMeta =
+      const VerificationMeta('pausePointCooldownMin');
+  @override
+  late final GeneratedColumn<int> pausePointCooldownMin = GeneratedColumn<int>(
+      'pause_point_cooldown_min', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(30));
   @override
   List<GeneratedColumn> get $columns => [
         appPackage,
@@ -94,7 +110,9 @@ class $AppRestrictionTableTable extends AppRestrictionTable
         periodDurationInMins,
         associatedGroupId,
         canAccessInternet,
-        reminderType
+        reminderType,
+        pausePointSec,
+        pausePointCooldownMin
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -142,6 +160,18 @@ class $AppRestrictionTableTable extends AppRestrictionTable
           canAccessInternet.isAcceptableOrUnknown(
               data['can_access_internet']!, _canAccessInternetMeta));
     }
+    if (data.containsKey('pause_point_sec')) {
+      context.handle(
+          _pausePointSecMeta,
+          pausePointSec.isAcceptableOrUnknown(
+              data['pause_point_sec']!, _pausePointSecMeta));
+    }
+    if (data.containsKey('pause_point_cooldown_min')) {
+      context.handle(
+          _pausePointCooldownMinMeta,
+          pausePointCooldownMin.isAcceptableOrUnknown(
+              data['pause_point_cooldown_min']!, _pausePointCooldownMinMeta));
+    }
     return context;
   }
 
@@ -172,6 +202,10 @@ class $AppRestrictionTableTable extends AppRestrictionTable
       reminderType: $AppRestrictionTableTable.$converterreminderType.fromSql(
           attachedDatabase.typeMapping.read(
               DriftSqlType.string, data['${effectivePrefix}reminder_type'])!),
+      pausePointSec: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}pause_point_sec'])!,
+      pausePointCooldownMin: attachedDatabase.typeMapping.read(DriftSqlType.int,
+          data['${effectivePrefix}pause_point_cooldown_min'])!,
     );
   }
 
@@ -218,6 +252,13 @@ class AppRestriction extends DataClass implements Insertable<AppRestriction> {
 
   /// [ReminderType] Type of reminders to show when using timed app
   final ReminderType reminderType;
+
+  /// Duration of the Pause Point breather in SECONDS.
+  /// 0 means Pause Point is disabled for this app.
+  final int pausePointSec;
+
+  /// Cooldown in MINUTES between consecutive Pause Point firings for this app.
+  final int pausePointCooldownMin;
   const AppRestriction(
       {required this.appPackage,
       required this.timerSec,
@@ -227,7 +268,9 @@ class AppRestriction extends DataClass implements Insertable<AppRestriction> {
       required this.periodDurationInMins,
       this.associatedGroupId,
       required this.canAccessInternet,
-      required this.reminderType});
+      required this.reminderType,
+      required this.pausePointSec,
+      required this.pausePointCooldownMin});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -253,6 +296,8 @@ class AppRestriction extends DataClass implements Insertable<AppRestriction> {
       map['reminder_type'] = Variable<String>(
           $AppRestrictionTableTable.$converterreminderType.toSql(reminderType));
     }
+    map['pause_point_sec'] = Variable<int>(pausePointSec);
+    map['pause_point_cooldown_min'] = Variable<int>(pausePointCooldownMin);
     return map;
   }
 
@@ -269,6 +314,8 @@ class AppRestriction extends DataClass implements Insertable<AppRestriction> {
           : Value(associatedGroupId),
       canAccessInternet: Value(canAccessInternet),
       reminderType: Value(reminderType),
+      pausePointSec: Value(pausePointSec),
+      pausePointCooldownMin: Value(pausePointCooldownMin),
     );
   }
 
@@ -289,6 +336,9 @@ class AppRestriction extends DataClass implements Insertable<AppRestriction> {
       canAccessInternet: serializer.fromJson<bool>(json['canAccessInternet']),
       reminderType: $AppRestrictionTableTable.$converterreminderType
           .fromJson(serializer.fromJson<String>(json['reminderType'])),
+      pausePointSec: serializer.fromJson<int>(json['pausePointSec']),
+      pausePointCooldownMin:
+          serializer.fromJson<int>(json['pausePointCooldownMin']),
     );
   }
   @override
@@ -310,6 +360,8 @@ class AppRestriction extends DataClass implements Insertable<AppRestriction> {
       'reminderType': serializer.toJson<String>($AppRestrictionTableTable
           .$converterreminderType
           .toJson(reminderType)),
+      'pausePointSec': serializer.toJson<int>(pausePointSec),
+      'pausePointCooldownMin': serializer.toJson<int>(pausePointCooldownMin),
     };
   }
 
@@ -322,7 +374,9 @@ class AppRestriction extends DataClass implements Insertable<AppRestriction> {
           int? periodDurationInMins,
           Value<int?> associatedGroupId = const Value.absent(),
           bool? canAccessInternet,
-          ReminderType? reminderType}) =>
+          ReminderType? reminderType,
+          int? pausePointSec,
+          int? pausePointCooldownMin}) =>
       AppRestriction(
         appPackage: appPackage ?? this.appPackage,
         timerSec: timerSec ?? this.timerSec,
@@ -335,6 +389,9 @@ class AppRestriction extends DataClass implements Insertable<AppRestriction> {
             : this.associatedGroupId,
         canAccessInternet: canAccessInternet ?? this.canAccessInternet,
         reminderType: reminderType ?? this.reminderType,
+        pausePointSec: pausePointSec ?? this.pausePointSec,
+        pausePointCooldownMin:
+            pausePointCooldownMin ?? this.pausePointCooldownMin,
       );
   AppRestriction copyWithCompanion(AppRestrictionTableCompanion data) {
     return AppRestriction(
@@ -361,6 +418,12 @@ class AppRestriction extends DataClass implements Insertable<AppRestriction> {
       reminderType: data.reminderType.present
           ? data.reminderType.value
           : this.reminderType,
+      pausePointSec: data.pausePointSec.present
+          ? data.pausePointSec.value
+          : this.pausePointSec,
+      pausePointCooldownMin: data.pausePointCooldownMin.present
+          ? data.pausePointCooldownMin.value
+          : this.pausePointCooldownMin,
     );
   }
 
@@ -375,7 +438,9 @@ class AppRestriction extends DataClass implements Insertable<AppRestriction> {
           ..write('periodDurationInMins: $periodDurationInMins, ')
           ..write('associatedGroupId: $associatedGroupId, ')
           ..write('canAccessInternet: $canAccessInternet, ')
-          ..write('reminderType: $reminderType')
+          ..write('reminderType: $reminderType, ')
+          ..write('pausePointSec: $pausePointSec, ')
+          ..write('pausePointCooldownMin: $pausePointCooldownMin')
           ..write(')'))
         .toString();
   }
@@ -390,7 +455,9 @@ class AppRestriction extends DataClass implements Insertable<AppRestriction> {
       periodDurationInMins,
       associatedGroupId,
       canAccessInternet,
-      reminderType);
+      reminderType,
+      pausePointSec,
+      pausePointCooldownMin);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -403,7 +470,9 @@ class AppRestriction extends DataClass implements Insertable<AppRestriction> {
           other.periodDurationInMins == this.periodDurationInMins &&
           other.associatedGroupId == this.associatedGroupId &&
           other.canAccessInternet == this.canAccessInternet &&
-          other.reminderType == this.reminderType);
+          other.reminderType == this.reminderType &&
+          other.pausePointSec == this.pausePointSec &&
+          other.pausePointCooldownMin == this.pausePointCooldownMin);
 }
 
 class AppRestrictionTableCompanion extends UpdateCompanion<AppRestriction> {
@@ -416,6 +485,8 @@ class AppRestrictionTableCompanion extends UpdateCompanion<AppRestriction> {
   final Value<int?> associatedGroupId;
   final Value<bool> canAccessInternet;
   final Value<ReminderType> reminderType;
+  final Value<int> pausePointSec;
+  final Value<int> pausePointCooldownMin;
   final Value<int> rowid;
   const AppRestrictionTableCompanion({
     this.appPackage = const Value.absent(),
@@ -427,6 +498,8 @@ class AppRestrictionTableCompanion extends UpdateCompanion<AppRestriction> {
     this.associatedGroupId = const Value.absent(),
     this.canAccessInternet = const Value.absent(),
     this.reminderType = const Value.absent(),
+    this.pausePointSec = const Value.absent(),
+    this.pausePointCooldownMin = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AppRestrictionTableCompanion.insert({
@@ -439,6 +512,8 @@ class AppRestrictionTableCompanion extends UpdateCompanion<AppRestriction> {
     this.associatedGroupId = const Value.absent(),
     this.canAccessInternet = const Value.absent(),
     this.reminderType = const Value.absent(),
+    this.pausePointSec = const Value.absent(),
+    this.pausePointCooldownMin = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : appPackage = Value(appPackage);
   static Insertable<AppRestriction> custom({
@@ -451,6 +526,8 @@ class AppRestrictionTableCompanion extends UpdateCompanion<AppRestriction> {
     Expression<int>? associatedGroupId,
     Expression<bool>? canAccessInternet,
     Expression<String>? reminderType,
+    Expression<int>? pausePointSec,
+    Expression<int>? pausePointCooldownMin,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -464,6 +541,9 @@ class AppRestrictionTableCompanion extends UpdateCompanion<AppRestriction> {
       if (associatedGroupId != null) 'associated_group_id': associatedGroupId,
       if (canAccessInternet != null) 'can_access_internet': canAccessInternet,
       if (reminderType != null) 'reminder_type': reminderType,
+      if (pausePointSec != null) 'pause_point_sec': pausePointSec,
+      if (pausePointCooldownMin != null)
+        'pause_point_cooldown_min': pausePointCooldownMin,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -478,6 +558,8 @@ class AppRestrictionTableCompanion extends UpdateCompanion<AppRestriction> {
       Value<int?>? associatedGroupId,
       Value<bool>? canAccessInternet,
       Value<ReminderType>? reminderType,
+      Value<int>? pausePointSec,
+      Value<int>? pausePointCooldownMin,
       Value<int>? rowid}) {
     return AppRestrictionTableCompanion(
       appPackage: appPackage ?? this.appPackage,
@@ -489,6 +571,9 @@ class AppRestrictionTableCompanion extends UpdateCompanion<AppRestriction> {
       associatedGroupId: associatedGroupId ?? this.associatedGroupId,
       canAccessInternet: canAccessInternet ?? this.canAccessInternet,
       reminderType: reminderType ?? this.reminderType,
+      pausePointSec: pausePointSec ?? this.pausePointSec,
+      pausePointCooldownMin:
+          pausePointCooldownMin ?? this.pausePointCooldownMin,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -530,6 +615,13 @@ class AppRestrictionTableCompanion extends UpdateCompanion<AppRestriction> {
           .$converterreminderType
           .toSql(reminderType.value));
     }
+    if (pausePointSec.present) {
+      map['pause_point_sec'] = Variable<int>(pausePointSec.value);
+    }
+    if (pausePointCooldownMin.present) {
+      map['pause_point_cooldown_min'] =
+          Variable<int>(pausePointCooldownMin.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -548,6 +640,8 @@ class AppRestrictionTableCompanion extends UpdateCompanion<AppRestriction> {
           ..write('associatedGroupId: $associatedGroupId, ')
           ..write('canAccessInternet: $canAccessInternet, ')
           ..write('reminderType: $reminderType, ')
+          ..write('pausePointSec: $pausePointSec, ')
+          ..write('pausePointCooldownMin: $pausePointCooldownMin, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -6047,6 +6141,8 @@ typedef $$AppRestrictionTableTableCreateCompanionBuilder
   Value<int?> associatedGroupId,
   Value<bool> canAccessInternet,
   Value<ReminderType> reminderType,
+  Value<int> pausePointSec,
+  Value<int> pausePointCooldownMin,
   Value<int> rowid,
 });
 typedef $$AppRestrictionTableTableUpdateCompanionBuilder
@@ -6060,6 +6156,8 @@ typedef $$AppRestrictionTableTableUpdateCompanionBuilder
   Value<int?> associatedGroupId,
   Value<bool> canAccessInternet,
   Value<ReminderType> reminderType,
+  Value<int> pausePointSec,
+  Value<int> pausePointCooldownMin,
   Value<int> rowid,
 });
 
@@ -6107,6 +6205,13 @@ class $$AppRestrictionTableTableFilterComposer
       get reminderType => $composableBuilder(
           column: $table.reminderType,
           builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<int> get pausePointSec => $composableBuilder(
+      column: $table.pausePointSec, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get pausePointCooldownMin => $composableBuilder(
+      column: $table.pausePointCooldownMin,
+      builder: (column) => ColumnFilters(column));
 }
 
 class $$AppRestrictionTableTableOrderingComposer
@@ -6150,6 +6255,14 @@ class $$AppRestrictionTableTableOrderingComposer
   ColumnOrderings<String> get reminderType => $composableBuilder(
       column: $table.reminderType,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get pausePointSec => $composableBuilder(
+      column: $table.pausePointSec,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get pausePointCooldownMin => $composableBuilder(
+      column: $table.pausePointCooldownMin,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$AppRestrictionTableTableAnnotationComposer
@@ -6190,6 +6303,12 @@ class $$AppRestrictionTableTableAnnotationComposer
   GeneratedColumnWithTypeConverter<ReminderType, String> get reminderType =>
       $composableBuilder(
           column: $table.reminderType, builder: (column) => column);
+
+  GeneratedColumn<int> get pausePointSec => $composableBuilder(
+      column: $table.pausePointSec, builder: (column) => column);
+
+  GeneratedColumn<int> get pausePointCooldownMin => $composableBuilder(
+      column: $table.pausePointCooldownMin, builder: (column) => column);
 }
 
 class $$AppRestrictionTableTableTableManager extends RootTableManager<
@@ -6230,6 +6349,8 @@ class $$AppRestrictionTableTableTableManager extends RootTableManager<
             Value<int?> associatedGroupId = const Value.absent(),
             Value<bool> canAccessInternet = const Value.absent(),
             Value<ReminderType> reminderType = const Value.absent(),
+            Value<int> pausePointSec = const Value.absent(),
+            Value<int> pausePointCooldownMin = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               AppRestrictionTableCompanion(
@@ -6242,6 +6363,8 @@ class $$AppRestrictionTableTableTableManager extends RootTableManager<
             associatedGroupId: associatedGroupId,
             canAccessInternet: canAccessInternet,
             reminderType: reminderType,
+            pausePointSec: pausePointSec,
+            pausePointCooldownMin: pausePointCooldownMin,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -6254,6 +6377,8 @@ class $$AppRestrictionTableTableTableManager extends RootTableManager<
             Value<int?> associatedGroupId = const Value.absent(),
             Value<bool> canAccessInternet = const Value.absent(),
             Value<ReminderType> reminderType = const Value.absent(),
+            Value<int> pausePointSec = const Value.absent(),
+            Value<int> pausePointCooldownMin = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               AppRestrictionTableCompanion.insert(
@@ -6266,6 +6391,8 @@ class $$AppRestrictionTableTableTableManager extends RootTableManager<
             associatedGroupId: associatedGroupId,
             canAccessInternet: canAccessInternet,
             reminderType: reminderType,
+            pausePointSec: pausePointSec,
+            pausePointCooldownMin: pausePointCooldownMin,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

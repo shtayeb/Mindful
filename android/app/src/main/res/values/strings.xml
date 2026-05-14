@@ -50,6 +50,12 @@
     <string name="app_paused_restriction_app_active_period">App active period</string>
     <string name="app_paused_restriction_group_timer">Group timer</string>
     <string name="app_paused_restriction_group_active_period">Group active period</string>
+    <string name="app_paused_restriction_pause_point">Pause Point</string>
+
+    <string name="pause_point_overlay_prompt">Why are you here?</string>
+    <string name="pause_point_overlay_subprompt">Take a breath. Be intentional.</string>
+    <string name="pause_point_overlay_btn_open" comment="App name as placeholder. ex: 'Open Instagram'" formatted="true">Open %s</string>
+    <string name="pause_point_overlay_btn_home">Return home</string>
 
     <string name="app_paused_overlay_button_emergency">Emergency</string>
     <string name="app_paused_overlay_label_spent_today">Spent today</string>

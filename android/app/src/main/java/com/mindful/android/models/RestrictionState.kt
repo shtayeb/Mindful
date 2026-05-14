@@ -22,4 +22,7 @@ data class RestrictionState(
 
     /** The type of reminder to show during app usage **/
     val reminderType: ReminderType = ReminderType.NONE,
+
+    /** Duration of the Pause Point breather in seconds (only meaningful when type == PAUSE_POINT) **/
+    val pausePointSec: Int = 0,
 )
